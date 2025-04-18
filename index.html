@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Atharva Bandgar - Portfolio Flipbook</title>
+
+    <!-- jQuery and turn.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            height: 100%;
+            width: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .flipbook-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        #flipbook {
+            width: 100%;
+            height: 100%;
+        }
+
+        .page {
+            background-color: white;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: transform 0.5s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .page img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .hard {
+            background-color: #2a2a2a;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #2a2a2a;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #444;
+            transform: scale(1.1);
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            color: #333;
+            z-index: 500;
+        }
+
+        #error-message {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="flipbook-container">
+            <div id="flipbook"></div>
+            <div class="loading">Preparing flipbook...</div>
+
+            <!-- Navigation Controls -->
+            <div class="controls">
+                <button id="prev" title="Previous Page"><i class="fas fa-chevron-left"></i></button>
+                <button id="next" title="Next Page"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+        <div id="error-message"></div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            try {
+                const images = [
+                    'portfolio-cover.jpg',
+                    'portfolio-page1.jpg',
+                    'portfolio-page2.jpg',
+                    'portfolio-page3.jpg',
+                    'portfolio-page4.jpg',
+                    'portfolio-page5.jpg',
+                    'portfolio-page6.jpg'
+                ];
+
+                const flipbook = $('#flipbook');
+
+                flipbook.append('<div class="hard"><div>Atharva Bandgar<br>Portfolio</div></div>');
+
+                images.forEach((imgSrc, index) => {
+                    if (index === 0) return;
+
+                    const page = document.createElement('div');
+                    page.className = 'page';
+
+                    const img = document.createElement('img');
+                    img.src = imgSrc;
+                    img.alt = `Portfolio page ${index}`;
+                    img.onerror = function () {
+                        this.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"><rect width="800" height="600" fill="%23f0f0f0"/><text x="400" y="300" font-family="Arial" font-size="30" text-anchor="middle" fill="%23999">Page ${index}</text></svg>';
+                    };
+
+                    page.appendChild(img);
+                    flipbook.append(page);
+                });
+
+                flipbook.append('<div class="hard"><div>Thank You</div></div>');
+
+                flipbook.turn({
+                    width: $('#flipbook').parent().width(),
+                    height: $('#flipbook').parent().height(),
+                    autoCenter: true,
+                    display: 'double',
+                    acceleration: true,
+                    elevation: 50,
+                    gradients: true,
+                    duration: 1000,
+                    when: {
+                        turning: function (e, page, view) {
+                            console.log('Turning to page: ' + page);
+                        },
+                        turned: function (e, page, view) {
+                            console.log('Turned to page: ' + page);
+                            $('.loading').hide();
+                        }
+                    }
+                });
+
+                $('.loading').hide();
+
+                $('#prev').click(function () {
+                    flipbook.turn('previous');
+                });
+
+                $('#next').click(function () {
+                    flipbook.turn('next');
+                });
+
+                $(window).resize(function () {
+                    flipbook.turn('size', $('#flipbook').parent().width(), $('#flipbook').parent().height());
+                });
+            } catch (error) {
+                console.error('Error initializing flipbook:', error);
+                $('.loading').hide();
+                $('#error-message').text('Error initializing flipbook: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
+
